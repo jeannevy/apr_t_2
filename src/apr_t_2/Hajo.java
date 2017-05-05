@@ -6,82 +6,71 @@ public class Hajo implements Runnable {
 	enum Orszag {
 		amcsi, szovjet;
 	}
-	protected static boolean kapcsolat = false;
+	protected Orszag orszag;
+
+	volatile protected static boolean kapcsolat = false;
 	
-	protected Orszag o;
-	protected int sor = 0;
-	protected int oszlop = 0;
-	int celsor;
-	int celoszlop;
+	protected int x = 0;
+	protected int y = 0;
+	
+	private int celX;
+	private int celY;
 	
 
-	public Hajo(int s, int o, Orszag or) {
-		this.sor = s;
-		this.oszlop = o;
-		this.o = or;
+	public Hajo(int x, int y, Orszag orszag) {
+		this.x = x;
+		this.y = y;
+		this.orszag = orszag;
 	}
 	
 	public Orszag getOrszag() {
-		return this.o;
-	}
-	
-	public int getSor() {
-		return this.sor;
-	}
-	public int getOszlop() {
-		return this.oszlop;
-	}
-	
-	public void setSor(int s) {
-		this.sor = s;
-	}
-	
-	public void setOszlop(int o) {
-		this.oszlop = o;
+		return this.orszag;
 	}
 	public void setOszag(Orszag o) {
-		this.o = o;
+		this.orszag = o;
 	}
 	
-	public void haladOszlop() {
-		if (celoszlop < this.oszlop) {
-			this.oszlop -= 1;
-		} else if (celoszlop > this.oszlop) {
-			this.oszlop += 1;
+	public void setPozicio(int x, int y) {
+		synchronized(this) {
+			this.x = x;
+			this.y = y;
 		}
-		
+	}
+	public int[] getPozicio() {
+		synchronized(this) {
+			return new int[]{this.x, this.y};
+		}
 	}
 
-	protected void haladSor() {
-		if (celsor < this.sor) {
-			this.sor -= 1; 
+	protected void lepes() {
+		if (celX < this.x && celY < this.y) { // del nyugat
+			this.setPozicio(this.x-1, this.y-1);
+		} else if (celX > this.x && celY > this.y) { // eszak kelet
+			this.setPozicio(this.x+1, this.y+1);
+		} else if (celX < this.x && celY > this.y) { // eszak nyugat
+			this.setPozicio(this.x-1, this.y+1);
+		} else if (celX > this.x && celY < this.y) { // del kelet
+			this.setPozicio(this.x+1, this.y-1);
+		} else if (celX == this.x && celY > this.y) { // eszak
+			this.setPozicio(this.x, this.y+1);
+		} else if (celX == this.x && celY < this.y) { // del
+			this.setPozicio(this.x, this.y-1);
+		} else if (celX < this.x && celY == this.y) { // nyugat
+			this.setPozicio(this.x-1, this.y);
+		} else if (celX > this.x && celY == this.y) { // kelet
+			this.setPozicio(this.x+1, this.y);
 		}
-		else { if (celsor > this.sor) {
-			this.sor += 1;
-		}
-		else {
-			return;
-		}
-		}
+
 	}
 	
-	public void halad() {
-		if (this.sor != celsor) {
-			this.haladSor();
-			try {
-				Thread.sleep(200);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+	protected void halad() {
+		this.lepes();
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
-		if (this.oszlop != celoszlop) {
-			this.haladOszlop();
-			try {
-				Thread.sleep(200);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+
 	}
 	
 	public static void setKapcsolat() {
@@ -90,9 +79,9 @@ public class Hajo implements Runnable {
 	
 	public void ujcel() {
 		Random r = new Random();
-		this.celsor = r.nextInt(100);
-		this.celoszlop = r.nextInt(100);
-		System.out.println(this.celsor + ", " + this.celoszlop);
+		this.celY = r.nextInt(100);
+		this.celX = r.nextInt(100);
+		System.out.println(this.celY + ", " + this.celX);
 	}
 	
 	
@@ -101,8 +90,13 @@ public class Hajo implements Runnable {
 		while (Hajo.kapcsolat == false) {
 			this.ujcel();
 			
-			while (Math.abs(this.sor-this.celsor) < 2 && Math.abs(this.oszlop-this.celoszlop) < 2) {
+			while (Math.abs(this.y-this.celY) > 1 || Math.abs(this.x-this.celY) > 1) {
 				this.halad();
+				if (Hajo.kapcsolat == true) {
+					System.out.println("leallitottam a szalat: " + Thread.currentThread().toString());
+					return;
+				}
+					
 			}
 			
 		}

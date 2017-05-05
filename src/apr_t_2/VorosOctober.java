@@ -11,34 +11,29 @@ public class VorosOctober extends Hajo {
 	}
 	
 	public void halad() {
-		if (this.getSor() != celsor) {
-			this.haladSor();
-			try {
-				Thread.sleep(120);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+		try {
+			Thread.sleep(120);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
-		if (this.getOszlop() != celoszlop) {
-			this.haladOszlop();
-			try {
-				Thread.sleep(120);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		for (Hajo haj: Main.hajolista) {
-			if (Math.abs(this.getSor()-haj.getSor()) <= 10 && Math.abs(this.getOszlop()-haj.getOszlop()) <= 10 && haj.o == Orszag.amcsi ) {
-				System.out.println(haj.getOszlop() + ", " + haj.getSor() + ", voros: " + this.getSor() + ", " + this.getOszlop());
+		this.lepes();
+
+		for (Hajo hajo: Main.hajolista) {
+			int[] hajoPoz = hajo.getPozicio();
+			int hajoX = hajoPoz[0];
+			int hajoY = hajoPoz[1];
+			if (Math.abs(this.y-hajoY) <= 10 && Math.abs(this.x-hajoX) <= 10 && hajo.orszag == Orszag.amcsi ) {
+				System.out.println(hajoX + ", " + hajoY+ ", voros: " + this.y + ", " + this.x);
 				Random r = new Random();
 				
 				int rint = r.nextInt(10);
 				if (rint < 3) {
 					System.out.println("sikerult megmenekulni");
 					Hajo.setKapcsolat();
-					VorosOctober.setKapcsolat();
+					break;
 				}
 			}
 		}
+	
 	}
 }
